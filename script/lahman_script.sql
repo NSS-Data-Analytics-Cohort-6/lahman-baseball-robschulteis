@@ -47,6 +47,15 @@ WHERE yearid = '2016'
 GROUP BY position
 ORDER BY total_putouts DESC
 
+/*Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
+use date part
+*/ 
+
+SELECT sum(so) as total_so,
+	   --DATE_PART('decade', CAST(CAST(yearid as float) AS date)) as decade
+	   yearid
+FROM teams
+GROUP BY yearid;
 
 
 
