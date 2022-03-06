@@ -50,12 +50,31 @@ ORDER BY total_putouts DESC
 /*Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
 use date part
 */ 
-
-SELECT sum(so) as total_so,
-	   --DATE_PART('decade', CAST(CAST(yearid as float) AS date)) as decade
-	   yearid
-FROM teams
-GROUP BY yearid;
+SELECT t.tot_so/t.g as avg_so,
+	 	t.decade,
+		t.tot_so
+FROM
+(SELECT (SUM(so) as tot_so,
+	   CASE WHEN (DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date))) = 187 THEN '1870s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 188 THEN '1880s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 189 THEN '1890s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 190 THEN '1900s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 191 THEN '1910s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 192 THEN '1920s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 193 THEN '1930s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 194 THEN '1940s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 195 THEN '1950s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 196 THEN '1960s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 197 THEN '1970s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 198 THEN '1980s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 199 THEN '1990s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 200 THEN '2000s'
+	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 201 THEN '2010s'
+	   END AS decade
+	   --CAST(CONCAT(yearid,'-01-01') AS date) as date
+FROM teams) as t
+GROUP BY t.decade, t.avg_so, t.yearid
+ORDER BY avg_so DESC;
 
 
 
