@@ -35,7 +35,7 @@ GROUP BY full_name, c.schoolid
 ORDER BY total_salary DESC
 
 /*Using the fielding table, group players into three groups based on their position: label players with position OF as "Outfield", those with position "SS", "1B", "2B", and "3B" as "Infield", and those with position "P" or "C" as "Battery". Determine the number of putouts made by each of these three groups in 2016.*/
---Answer: Infield - 59934, Battery - 41424, Outfield - 29560
+
 SELECT 
 	CASE WHEN pos = 'OF' THEN 'Outfield'
 	WHEN pos = 'SS' OR pos = '1B' OR pos = '2B' OR pos = '3B' THEN 'Infield'
@@ -45,36 +45,111 @@ SELECT
 FROM fielding
 WHERE yearid = '2016'
 GROUP BY position
-ORDER BY total_putouts DESC
+ORDER BY total_putouts DESC;
 
-/*Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
-use date part
-*/ 
-SELECT t.tot_so/t.g as avg_so,
-	 	t.decade,
-		t.tot_so
-FROM
-(SELECT (SUM(so) as tot_so,
-	   CASE WHEN (DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date))) = 187 THEN '1870s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 188 THEN '1880s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 189 THEN '1890s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 190 THEN '1900s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 191 THEN '1910s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 192 THEN '1920s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 193 THEN '1930s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 194 THEN '1940s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 195 THEN '1950s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 196 THEN '1960s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 197 THEN '1970s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 198 THEN '1980s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 199 THEN '1990s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 200 THEN '2000s'
-	   WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 201 THEN '2010s'
+
+/*Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?*/
+
+SELECT 
+	   ROUND(AVG(so/g),2) as avg_so,
+	   ROUND(AVG(hr/g),2) as avg_hr,	   
+	   CASE --WHEN (DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date))) = 187 THEN '1870s'
+	   	--WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 188 THEN '1880s'
+	   	--WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 189 THEN '1890s'
+	   	--WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 190 THEN '1900s'
+	   	--WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 191 THEN '1910s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 192 THEN '1920s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 193 THEN '1930s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 194 THEN '1940s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 195 THEN '1950s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 196 THEN '1960s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 197 THEN '1970s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 198 THEN '1980s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 199 THEN '1990s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 200 THEN '2000s'
+	   	WHEN DATE_PART('decade', CAST(CONCAT(yearid,'-01-01') AS date)) = 201 THEN '2010s'
 	   END AS decade
 	   --CAST(CONCAT(yearid,'-01-01') AS date) as date
-FROM teams) as t
-GROUP BY t.decade, t.avg_so, t.yearid
-ORDER BY avg_so DESC;
+FROM teams
+WHERE yearid >= '1920'
+GROUP BY decade
+ORDER BY decade DESC;
+
+/*Find the player who had the most success stealing bases in 2016, where success is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted at least 20 stolen bases.*/
+-- Chris Owings
+SELECT 
+	SUM(sb) * 100.0 / NULLIF(SUM(sb + cs),0) AS percent_success,
+	p.namefirst,
+	p.namelast
+ FROM people as p
+ LEFT JOIN batting as b
+ ON p.playerid = b.playerid
+ GROUP BY p.namefirst, p.namelast, b.sb, b.cs, b.yearid
+ HAVING (sb + cs) >= 20 AND yearid = '2016'
+ ORDER BY percent_success DESC
+
+/*From 1970 – 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion – determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 – 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?*/
+-- SEA, 2001, 116 WINS
+-- LAN (DODGERS), 1981, 63 WINS (Shortened Season (through research this was due to the Strike))
+-- SLN (CARDS), 2006, 83 WINS
+/*SELECT 
+	teamid,
+	name,
+	SUM(w) AS total_wins,
+	yearid,
+	wswin
+FROM teams
+WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'N'
+GROUP BY teamid, yearid, wswin, name
+ORDER BY total_wins DESC*/
+
+/*SELECT 
+	teamid,
+	name,
+	SUM(w) AS total_wins,
+	yearid,
+	wswin
+FROM teams
+WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'Y'
+GROUP BY teamid, yearid, wswin, name
+ORDER BY total_wins*/
+
+/*SELECT 
+	teamid,
+	name,
+	SUM(w) AS total_wins,
+	yearid,
+	g
+FROM teams
+WHERE yearid = 1981
+GROUP BY teamid, yearid, wswin, name, g
+ORDER BY g DESC*/
+
+/*SELECT 
+	teamid,
+	name,
+	SUM(w) AS total_wins,
+	yearid,
+	wswin
+FROM teams
+WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'Y' AND yearid <> '1981'
+GROUP BY teamid, yearid, wswin, name
+ORDER BY total_wins*/
+
+SELECT 
+	teamid,
+	name,
+	SUM(w) AS total_wins,
+	yearid,
+	wswin
+FROM teams
+WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'Y' AND yearid <> '1981'
+GROUP BY teamid, yearid, wswin, name
+ORDER BY total_wins
+
+SELECT COUNT(CASE WHEN wsin = 'W' THE)
+
+
 
 
 
