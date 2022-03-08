@@ -92,27 +92,17 @@ SELECT
 -- SEA, 2001, 116 WINS
 -- LAN (DODGERS), 1981, 63 WINS (Shortened Season (through research this was due to the Strike))
 -- SLN (CARDS), 2006, 83 WINS
-/*SELECT 
-	teamid,
-	name,
-	SUM(w) AS total_wins,
-	yearid,
-	wswin
-FROM teams
-WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'N'
-GROUP BY teamid, yearid, wswin, name
-ORDER BY total_wins DESC*/
 
 /*SELECT 
 	teamid,
 	name,
-	SUM(w) AS total_wins,
+	w AS total_wins,
 	yearid,
 	wswin
 FROM teams
-WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'Y'
-GROUP BY teamid, yearid, wswin, name
-ORDER BY total_wins*/
+WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'N'
+GROUP BY teamid, yearid, wswin, name, w
+ORDER BY total_wins DESC*/
 
 /*SELECT 
 	teamid,
@@ -128,15 +118,15 @@ ORDER BY g DESC*/
 /*SELECT 
 	teamid,
 	name,
-	SUM(w) AS total_wins,
+	w AS total_wins,
 	yearid,
 	wswin
 FROM teams
 WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'Y' AND yearid <> '1981'
-GROUP BY teamid, yearid, wswin, name
+GROUP BY teamid, yearid, wswin, name, w
 ORDER BY total_wins*/
 
-SELECT 
+/*SELECT 
 	teamid,
 	name,
 	SUM(w) AS total_wins,
@@ -145,9 +135,37 @@ SELECT
 FROM teams
 WHERE yearid BETWEEN 1970 AND 2016 AND wswin = 'Y' AND yearid <> '1981'
 GROUP BY teamid, yearid, wswin, name
-ORDER BY total_wins
+ORDER BY total_wins*/
 
-SELECT COUNT(CASE WHEN wsin = 'W' THE)
+	WITH ws_win (win_champ, yearid) as 
+		(SELECT 
+			--teamid,
+			--name,
+			w as win_champ,
+			yearid
+			--wswin
+		FROM teams
+		WHERE yearid BETWEEN 1970 AND 2016 and wswin = 'Y'
+		GROUP BY yearid, win_champ)
+	,
+	max_wins_year (max_win_season, yearid) as  
+		(SELECT
+			--name,
+			MAX(MAX(w)) OVER(PARTITION BY (yearid)) as max_win_season,
+			yearid
+		FROM teams
+		 WHERE yearid BETWEEN 1970 AND 2016
+		 GROUP BY yearid)
+
+SELECT *
+	FROM ws_win w
+	INNER JOIN max_wins_year m
+	on cast(w.win_champ as int) = cast(m.max_win_season as int) AND w.yearid = m.yearid
+	GROUP BY m.yearid, w.win_champ, w.yearid, m.max_win_season
+	ORDER BY w.yearid
+
+
+	
 
 
 
