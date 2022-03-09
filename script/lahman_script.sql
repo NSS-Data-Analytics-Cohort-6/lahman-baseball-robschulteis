@@ -184,26 +184,48 @@ SELECT w.yearid, CASE WHEN cast(w.win_champ as int) = cast(m.max_win_season as i
 	
 /*Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.*/
 	
-WITH NL (playerid, namefirst, namelast, awardid, lgid) AS
-	(SELECT a.playerid, p.namefirst, p.namelast, a.awardid, a.lgid
-	FROM awardsmanagers as a
-	INNER JOIN people as p
-	ON a.playerid = p.playerid
-	WHERE awardid = 'TSN Manager of the Year' AND lgid = 'NL'
+WITH NL (playerid, namefirst, namelast, teamid, name, awardid, lgid) AS
+	(SELECT a.playerid
+	 		, p.namefirst
+	 		, p.namelast
+	 		, m.teamid
+	 		, t.name
+	 		, a.awardid
+	 		, a.lgid
+	FROM people AS p
+	INNER JOIN awardsmanagers AS a
+	ON p.playerid = a.playerid
+	INNER JOIN managers AS m
+	ON a.playerid = m.playerid AND a.yearid = m.yearid
+	INNER JOIN teams AS t 
+	ON m.teamid = t.teamid AND m.yearid = t.yearid
+	WHERE awardid = 'TSN Manager of the Year' AND a.lgid = 'NL'
+	GROUP BY a.playerid, p.namefirst, p.namelast, m.teamid, t.name, a.awardid, a.lgid
 	ORDER BY a.playerid)
 ,
 
-AL (playerid, namefirst, namelast, awardid, lgid) AS
-	(SELECT a.playerid, p.namefirst, p.namelast, a.awardid, a.lgid
-	FROM awardsmanagers as a
-	INNER JOIN people as p
-	ON a.playerid = p.playerid
-	WHERE awardid = 'TSN Manager of the Year' AND lgid = 'AL'
+AL (playerid, namefirst, namelast, teamid, name, awardid, lgid) AS
+	(SELECT a.playerid
+	 		, p.namefirst
+	 		, p.namelast
+	 		, m.teamid
+	 		, t.name
+	 		, a.awardid
+	 		, a.lgid
+	FROM people AS p
+	INNER JOIN awardsmanagers AS a
+	ON p.playerid = a.playerid
+	INNER JOIN managers as m
+	ON a.playerid = m.playerid AND a.yearid = m.yearid
+	INNER JOIN teams as t 
+	ON m.teamid = t.teamid AND m.yearid = t.yearid
+	WHERE awardid = 'TSN Manager of the Year' AND a.lgid = 'AL'
+	GROUP BY a.playerid, p.namefirst, p.namelast, m.teamid, t.name, a.awardid, a.lgid
 	ORDER BY a.playerid)
 
-SELECT *
+SELECT AL.namefirst AS first_name, AL.namelast AS last_name, AL.name as AL_team, NL.name AS NL_team
 FROM NL
-JOIN AL
+INNER JOIN AL
 ON NL.playerid = AL.playerid
 
 
