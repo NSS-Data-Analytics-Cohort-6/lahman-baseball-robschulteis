@@ -184,6 +184,27 @@ SELECT w.yearid, CASE WHEN cast(w.win_champ as int) = cast(m.max_win_season as i
 	
 /*Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.*/
 	
+WITH NL (playerid, namefirst, namelast, awardid, lgid) AS
+	(SELECT a.playerid, p.namefirst, p.namelast, a.awardid, a.lgid
+	FROM awardsmanagers as a
+	INNER JOIN people as p
+	ON a.playerid = p.playerid
+	WHERE awardid = 'TSN Manager of the Year' AND lgid = 'NL'
+	ORDER BY a.playerid)
+,
+
+AL (playerid, namefirst, namelast, awardid, lgid) AS
+	(SELECT a.playerid, p.namefirst, p.namelast, a.awardid, a.lgid
+	FROM awardsmanagers as a
+	INNER JOIN people as p
+	ON a.playerid = p.playerid
+	WHERE awardid = 'TSN Manager of the Year' AND lgid = 'AL'
+	ORDER BY a.playerid)
+
+SELECT *
+FROM NL
+JOIN AL
+ON NL.playerid = AL.playerid
 
 
 
