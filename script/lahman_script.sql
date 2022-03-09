@@ -157,16 +157,32 @@ ORDER BY total_wins*/
 		 WHERE yearid BETWEEN 1970 AND 2016
 		 GROUP BY yearid)
 
-SELECT *
+SELECT w.yearid, CASE WHEN cast(w.win_champ as int) = cast(m.max_win_season as int) THEN 1 END AS tot_
 	FROM ws_win w
 	INNER JOIN max_wins_year m
 	on cast(w.win_champ as int) = cast(m.max_win_season as int) AND w.yearid = m.yearid
 	GROUP BY m.yearid, w.win_champ, w.yearid, m.max_win_season
 	ORDER BY w.yearid
 
-
+/*Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.*/
+	--TOP 5 LAN,SLN,TOR,SFN
+	--BOT 5 TBA, OAK, CLE, MIA, CHA
+WITH average (avg_attendance) AS 
+	(SELECT 
+	 	p.park_name,
+	 	h.team,
+	 	--SUM(SUM(h.games)) OVER(PARTITION BY h.team) AS tot_games,
+	 	ROUND(SUM(h.attendance)/ NULLIF(SUM(h.games),0),2) AS avg_attendance
+	 FROM homegames AS h 
+	 INNER JOIN parks AS p
+	 ON h.park = p.park
+	 WHERE year = 2016
+	 GROUP BY h.team, h.games, p.park_name
+	 HAVING SUM(games) >= 10
+	 ORDER BY avg_attendance
+	 LIMIT 5
+	)	
 	
-
 
 
 
