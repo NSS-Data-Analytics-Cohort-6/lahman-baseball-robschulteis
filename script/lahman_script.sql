@@ -228,6 +228,38 @@ FROM NL
 INNER JOIN AL
 ON NL.playerid = AL.playerid
 
+--Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
 
+WITH career_high_stats(playerid, namefirst, namelast, yearid, years_played, career_high_hr) AS	
+	(SELECT  b.playerid
+			, p.namefirst
+			, p.namelast
+			, b.yearid
+			,  DATE_PART('year', p.finalgame::date) - DATE_PART('year', p.debut::date) AS years_played
+			, MAX(b.hr) OVER(PARTITION BY b.playerid, b.yearid) as career_high_hr
+	FROM batting AS b
+	LEFT JOIN people AS p
+	USING (playerid)
+	GROUP BY b.playerid, p.namefirst, p.namelast, b.yearid, p.finalgame, p.debut, b.hr
+	HAVING DATE_PART('year', p.finalgame::date) - DATE_PART('year', p.debut::date) > 10
+	ORDER BY b.hr DESC)
+,
 
+HR (playerid, yearid, hr) AS 
+	(SELECT playerid
+			, yearid
+			, hr
+	FROM batting
+	WHERE yearid = 2016 AND hr >=1)
+
+SELECT 
+	c.playerid
+	, c.namefirst
+	, c.namelast
+	, c.yearid
+	, HR.hr 
+FROM career_high_stats as c
+LEFT JOIN HR
+USING(playerid, yearid)
+WHERE HR.hr = c.career_high_hr
 
