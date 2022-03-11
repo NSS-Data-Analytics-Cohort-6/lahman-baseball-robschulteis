@@ -236,7 +236,7 @@ WITH career_high_stats(playerid, namefirst, namelast, yearid, years_played, care
 			, p.namelast
 			, b.yearid
 			,  DATE_PART('year', p.finalgame::date) - DATE_PART('year', p.debut::date) AS years_played
-			, MAX(b.hr) OVER(PARTITION BY b.playerid, b.yearid) as career_high_hr
+			, MAX(b.hr) OVER(PARTITION BY b.playerid) AS career_high_hr
 	FROM batting AS b
 	LEFT JOIN people AS p
 	USING (playerid)
@@ -257,9 +257,10 @@ SELECT
 	, c.namefirst
 	, c.namelast
 	, c.yearid
-	, HR.hr 
+	, HR.hr
 FROM career_high_stats as c
 LEFT JOIN HR
 USING(playerid, yearid)
 WHERE HR.hr = c.career_high_hr
+GROUP BY c.playerid, c.namefirst, c.namelast, c.yearid, HR.hr
 
