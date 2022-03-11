@@ -241,7 +241,7 @@ WITH career_high_stats(playerid, namefirst, namelast, yearid, years_played, care
 	LEFT JOIN people AS p
 	USING (playerid)
 	GROUP BY b.playerid, p.namefirst, p.namelast, b.yearid, p.finalgame, p.debut, b.hr
-	HAVING DATE_PART('year', p.finalgame::date) - DATE_PART('year', p.debut::date) > 10
+	HAVING DATE_PART('year', p.finalgame::date) - DATE_PART('year', p.debut::date) >= 10 --this was 
 	ORDER BY b.hr DESC)
 ,
 
@@ -258,9 +258,10 @@ SELECT
 	, c.namelast
 	, c.yearid
 	, HR.hr
+	, c.years_played
 FROM career_high_stats as c
 LEFT JOIN HR
 USING(playerid, yearid)
 WHERE HR.hr = c.career_high_hr
-GROUP BY c.playerid, c.namefirst, c.namelast, c.yearid, HR.hr
+GROUP BY c.playerid, c.namefirst, c.namelast, c.yearid, HR.hr, c.years_played
 
