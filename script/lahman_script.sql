@@ -322,5 +322,25 @@ ORDER BY years_played*/
 
 /*Is there any correlation between number of wins and team salary? Use data from 2000 and later to answer this question. As you do this analysis, keep in mind that salaries across the whole league tend to increase together, so you may want to look on a year-by-year basis.*/
 
+SELECT t.name
+	   , s. yearid
+	   --, SUM(CAST(S.salary AS DECIMAL))
+	   , ROUND(AVG(AVG(CAST(s.salary as decimal))) OVER(PARTITION BY teamid),2) as avg_salary_per_year
+	   , ROUND(t.w/AVG(t.w) OVER(PARTITION BY yearid)*100,2) as perc_of_avg
+FROM salaries as s 
+JOIN teams as t
+USING(teamid, yearid)
+WHERE s.yearid >= 2000
+GROUP BY s.teamid, t.name, s.yearid, t.w
+ORDER BY s.yearid DESC, avg_salary_per_year DESC
 
+SELECT yearid, AVG(SUM(salary)) OVER(PARTITION BY yearid)
+FROM salaries
+GROUP BY yearid, teamid
+ORDER BY yearid DESC
+
+SELECT teamid, yearid
+, SUM(SUM(salary)) OVER(PARTITION BY teamid)
+FROM salaries 
+GROUP BY yearid, teamid
 
